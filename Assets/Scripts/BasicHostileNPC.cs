@@ -20,7 +20,7 @@ public class BasicHostileNPC : MonoBehaviour
     public float maxDistFromSpawn;
     public Animator animator;
 
-    GameObject player;
+    protected GameObject player;
     float spawnX;
 
     protected float currentSpeed;
@@ -70,7 +70,7 @@ public class BasicHostileNPC : MonoBehaviour
 
     protected void LookOutForEnemy()
     {
-        float dist = player.transform.position.x - transform.position.x;
+        float dist = (player.transform.position - transform.position).magnitude;
         int dir = dist > 0 ? 1 : -1;
         dist = Mathf.Abs(dist);
         if (dist <= attackRad)
@@ -94,7 +94,7 @@ public class BasicHostileNPC : MonoBehaviour
     protected virtual void Idle()
     {
         float spawnDist = spawnX - transform.position.x;
-        int dir = spawnX > 0 ? 1 : -1;
+        int dir = spawnDist > 0 ? 1 : -1;
         spawnDist *= dir;
         if (spawnDist > maxDistFromSpawn || moveToSpawn)
         {

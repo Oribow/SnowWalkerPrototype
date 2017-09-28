@@ -12,8 +12,10 @@ public class PlayerMotor : MonoBehaviour
     public float dashDistance;
     [HideInInspector]
     public List<float> speedMultipliers;
+    public int facedDir;
 
     public IMotorInput motorInput;
+    public Transform spriteRoot;
 
     private float dashTimeStamp;
     private int dashDir;
@@ -21,6 +23,7 @@ public class PlayerMotor : MonoBehaviour
     void Start()
     {
         speedMultipliers = new List<float>(4);
+        facedDir = (int)Mathf.Sign(transform.localScale.x);
     }
 
     // Update is called once per frame
@@ -48,6 +51,7 @@ public class PlayerMotor : MonoBehaviour
             if (motorInput.ShouldJump() && motor.isGrounded)
                 deltaMove.y += jump;
         }
+        AdjustFacingDir(deltaMove.x);
         motor.move(deltaMove * Time.deltaTime, false);
 
         DebugPanel.Log("Player Speed", motor.velocity);
@@ -61,6 +65,17 @@ public class PlayerMotor : MonoBehaviour
 
         dashTimeStamp = Time.time + dashDistance / dashSpeed;
         dashDir = dir;
+    }
+
+    private void AdjustFacingDir(float velocity)
+    {
+        if (Mathf.Sign(spriteRoot.localScale.x) != Mathf.Sign(velocity))
+        {
+            Vector3 scale = spriteRoot.localScale;
+            scale.x *= -1;
+            spriteRoot.localScale = scale;
+            facedDir = (int)Mathf.Sign(velocity);
+        }
     }
 }
 

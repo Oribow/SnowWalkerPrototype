@@ -17,6 +17,9 @@ public class TKLongPressRecognizer : TKAbstractGestureRecognizer
 	public int requiredTouchesCount = -1;
 	public float allowableMovementCm = 1f;
 
+    public bool ignoreMovementAfterRecognition = false;
+    public bool cancelAfterRecognitionWhenOutOfBounds = false;
+
 	Vector2 _beginLocation;
 	bool _waiting;
 
@@ -82,20 +85,32 @@ public class TKLongPressRecognizer : TKAbstractGestureRecognizer
 
 	internal override void touchesMoved( List<TKTouch> touches )
 	{
-		if( state == TKGestureRecognizerState.Began || state == TKGestureRecognizerState.RecognizedAndStillRecognizing )
-		{
-			// did we move too far?
-			var moveDistance = Vector2.Distance(touches[0].position, _beginLocation) / TouchKit.instance.ScreenPixelsPerCm;
-			if (moveDistance > allowableMovementCm)
-			{
-				// fire the complete event if we had previously recognized a long press
-				if( state == TKGestureRecognizerState.RecognizedAndStillRecognizing && gestureCompleteEvent != null )
-					gestureCompleteEvent( this );
+        if (state == TKGestureRecognizerState.Began || (state == TKGestureRecognizerState.RecognizedAndStillRecognizing && !ignoreMovementAfterRecognition))
+        {
+            // did we move too far?
+            var moveDistance = Vector2.Distance(touches[0].position, _beginLocation) / TouchKit.instance.ScreenPixelsPerCm;
+            if (moveDistance > allowableMovementCm)
+            {
+                // fire the complete event if we had previously recognized a long press
+                if (state == TKGestureRecognizerState.RecognizedAndStillRecognizing && gestureCompleteEvent != null)
+                    gestureCompleteEvent(this);
 
-				state = TKGestureRecognizerState.FailedOrEnded;
-				_waiting = false;
-			}
-		}
+                state = TKGestureRecognizerState.FailedOrEnded;
+                _waiting = false;
+            }
+        }
+        else if (state == TKGestureRecognizerState.RecognizedAndStillRecognizing && cancelAfterRecognitionWhenOutOfBounds)
+        {
+            //make out of bounds check
+            if (!isTouchWithinBoundaryFrame(touches[0]))
+            {
+                if(gestureCompleteEvent != null)
+                    gestureCompleteEvent(this);
+
+                state = TKGestureRecognizerState.FailedOrEnded;
+                _waiting = false;
+            }
+        }
 	}
 
 
